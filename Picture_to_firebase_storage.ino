@@ -20,19 +20,21 @@
 //Provide the token generation process info.
 #include <addons/TokenHelper.h>
 
+#define FLASH_GPIO_NUM 4
+
 //Replace with your network credentials
 const char* ssid = "Doops";
 const char* password = "aforapple";
 
 // Insert Firebase project API Key
-#define API_KEY "AIzaSyD3EkEzsFOshGfl45Z7ReXGqlYa0gD76R0"
+#define API_KEY "AIzaSyCZ7T5NRL-Rpojdi-8ntAGyc8PI_4C0aB8"
 
 // Insert Authorized Email and Corresponding Password
 #define USER_EMAIL "doopstech@gmail.com"
 #define USER_PASSWORD "tresdet@doops"
 
 // Insert Firebase storage bucket ID e.g bucket-name.appspot.com
-#define STORAGE_BUCKET_ID "tresdet-53552.appspot.com"
+#define STORAGE_BUCKET_ID "tresdet-478dd.appspot.com"
 
 // Photo File Name to save in SPIFFS
 #define FILE_PHOTO "/data/photo.jpg"
@@ -190,14 +192,19 @@ void setup() {
   Firebase.reconnectWiFi(true);
 }
 
+int captureCounter=0;
 void loop() {
   if (takeNewPhoto) {
+    pinMode(FLASH_GPIO_NUM, OUTPUT);
+    digitalWrite(FLASH_GPIO_NUM, HIGH);
     capturePhotoSaveSpiffs();
-    takeNewPhoto = false;
+    captureCounter++;
+    digitalWrite(FLASH_GPIO_NUM, LOW);
+    
   }
   delay(1);
   if (Firebase.ready() && !taskCompleted){
-    taskCompleted = true;
+    
     Serial.print("Uploading picture... ");
 
     //MIME type should be valid to avoid the download problem.
@@ -209,4 +216,10 @@ void loop() {
       Serial.println(fbdo.errorReason());
     }
   }
+  delay(10000);
+  if(captureCounter == 5){
+    takeNewPhoto = false;
+    taskCompleted = true;
+  }
+  
 }

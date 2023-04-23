@@ -39,6 +39,9 @@ const char* password = "aforapple";
 // Photo File Name to save in SPIFFS
 #define FILE_PHOTO "/data/photo.jpg"
 
+// Photo path in server
+#define SERVER_PHOTO "/data/farmfeild1/cam1/photo.jpg"
+
 // OV2640 camera module pins (CAMERA_MODEL_AI_THINKER)
 #define PWDN_GPIO_NUM     32
 #define RESET_GPIO_NUM    -1
@@ -209,7 +212,7 @@ void loop() {
 
     //MIME type should be valid to avoid the download problem.
     //The file systems for flash and SD/SDMMC can be changed in FirebaseFS.h.
-    if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */, FILE_PHOTO /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, FILE_PHOTO /* path of remote file stored in the bucket */, "image/jpeg" /* mime type */)){
+    if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */, FILE_PHOTO /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, SERVER_PHOTO /* path of remote file stored in the bucket */, "image/jpeg" /* mime type */)){
       Serial.printf("\nDownload URL: %s\n", fbdo.downloadURL().c_str());
     }
     else{
@@ -220,6 +223,8 @@ void loop() {
   if(captureCounter == 5){
     takeNewPhoto = false;
     taskCompleted = true;
+    Serial.println("-- process end --"); 
+    captureCounter++;
   }
   
 }

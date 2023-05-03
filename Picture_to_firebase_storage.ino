@@ -48,7 +48,7 @@ const char* password = "aforapple";
 #define SERVER_PHOTO "/data/farmfeild1/cam1"
 
 //api communication
-#define SERVER_NAME ""
+#define SERVER_NAME "172.16.2.247:8000"
 
 // OV2640 camera module pins (CAMERA_MODEL_AI_THINKER)
 #define PWDN_GPIO_NUM     32

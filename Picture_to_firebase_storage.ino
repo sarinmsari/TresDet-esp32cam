@@ -40,7 +40,7 @@ const char* password = "aforapple";
 #define FILE_PHOTO "/data/photo.jpg"
 
 // Photo path in server
-#define SERVER_PHOTO "/data/farmfeild1/cam1/photo.jpg"
+#define SERVER_PHOTO "/data/farmfeild1/cam1"
 
 // OV2640 camera module pins (CAMERA_MODEL_AI_THINKER)
 #define PWDN_GPIO_NUM     32
@@ -206,13 +206,16 @@ void loop() {
     
   }
   delay(1);
+
+  String SERVER_PHOTO_PATH = SERVER_PHOTO+ String("/photo") + String(captureCounter) + String(".jpg");
+
   if (Firebase.ready() && !taskCompleted){
     
     Serial.print("Uploading picture... ");
 
     //MIME type should be valid to avoid the download problem.
     //The file systems for flash and SD/SDMMC can be changed in FirebaseFS.h.
-    if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */, FILE_PHOTO /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, SERVER_PHOTO /* path of remote file stored in the bucket */, "image/jpeg" /* mime type */)){
+    if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */, FILE_PHOTO /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, SERVER_PHOTO_PATH /* path of remote file stored in the bucket */, "image/jpeg" /* mime type */)){
       Serial.printf("\nDownload URL: %s\n", fbdo.downloadURL().c_str());
     }
     else{

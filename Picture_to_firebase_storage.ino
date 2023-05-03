@@ -17,6 +17,7 @@
 #include <SPIFFS.h>
 #include <FS.h>
 #include <Firebase_ESP_Client.h>
+#include <HTTPClient.h>
 //Provide the token generation process info.
 #include <addons/TokenHelper.h>
 
@@ -25,6 +26,10 @@
 //Replace with your network credentials
 const char* ssid = "Doops";
 const char* password = "aforapple";
+
+//device credentials
+#define FARM_FEILD_ID "2"
+#define CAMERA_ID "1"
 
 // Insert Firebase project API Key
 #define API_KEY "AIzaSyCZ7T5NRL-Rpojdi-8ntAGyc8PI_4C0aB8"
@@ -41,6 +46,9 @@ const char* password = "aforapple";
 
 // Photo path in server
 #define SERVER_PHOTO "/data/farmfeild1/cam1"
+
+//api communication
+#define SERVER_NAME ""
 
 // OV2640 camera module pins (CAMERA_MODEL_AI_THINKER)
 #define PWDN_GPIO_NUM     32
@@ -208,7 +216,8 @@ void loop() {
   delay(1);
 
   String SERVER_PHOTO_PATH = SERVER_PHOTO+ String("/photo") + String(captureCounter) + String(".jpg");
-
+  HTTPClient http;
+  
   if (Firebase.ready() && !taskCompleted){
     
     Serial.print("Uploading picture... ");
@@ -217,6 +226,25 @@ void loop() {
     //The file systems for flash and SD/SDMMC can be changed in FirebaseFS.h.
     if (Firebase.Storage.upload(&fbdo, STORAGE_BUCKET_ID /* Firebase Storage bucket id */, FILE_PHOTO /* path to local file */, mem_storage_type_flash /* memory storage type, mem_storage_type_flash and mem_storage_type_sd */, SERVER_PHOTO_PATH /* path of remote file stored in the bucket */, "image/jpeg" /* mime type */)){
       Serial.printf("\nDownload URL: %s\n", fbdo.downloadURL().c_str());
+      
+  
+      http.begin(SERVER_NAME);
+      http.addHeader("Content-Type", "application/json");
+      // JSON data to send with HTTP POST
+      String httpRequestData = "{\"FarmFeildId\":\"" + String(FARM_FEILD_ID) + "\",\"CameraId\":\"" + String(CAMERA_ID) + "\",\"CaptureCount\":\"" + String(captureCounter)+ "\",\"ImageLocation\":\"" + String(SERVER_PHOTO_PATH)+"\"}";           
+      Serial.println();
+      Serial.print(httpRequestData);
+      Serial.println();
+      // Send HTTP POST request
+      int httpResponseCode = http.POST(httpRequestData);
+      Serial.print("HTTP Response code: ");
+      Serial.println(httpResponseCode);
+      if(httpResponseCode>0){
+        String response = http.getString();  
+        Serial.println(response);
+      }
+       http.end();
+      
     }
     else{
       Serial.println(fbdo.errorReason());

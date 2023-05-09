@@ -1,12 +1,3 @@
-/*********
-  Rui Santos
-  Complete instructions at: https://RandomNerdTutorials.com/esp32-cam-save-picture-firebase-storage/
-  
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files.
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-  Based on the example provided by the ESP Firebase Client Library
-*********/
 
 #include "WiFi.h"
 #include "esp_camera.h"
@@ -28,7 +19,7 @@ const char* ssid = "Doops";
 const char* password = "aforapple";
 
 //device credentials
-#define FARM_FEILD_ID "2"
+#define FARM_FEILD_ID "1"
 #define CAMERA_ID "1"
 
 // Insert Firebase project API Key
@@ -45,7 +36,7 @@ const char* password = "aforapple";
 #define FILE_PHOTO "/data/photo.jpg"
 
 // Photo path in server
-#define SERVER_PHOTO "/data/farmfeild1/cam1"
+#define SERVER_PHOTO "data/farmfeild1/cam1"
 
 //api communication
 #define SERVER_NAME "172.16.2.247:8000"
@@ -204,18 +195,19 @@ void setup() {
 }
 
 int captureCounter=0;
+int responseFlashCounter=0;
 void loop() {
   if (takeNewPhoto) {
     pinMode(FLASH_GPIO_NUM, OUTPUT);
-    digitalWrite(FLASH_GPIO_NUM, HIGH);
+    
     capturePhotoSaveSpiffs();
     captureCounter++;
-    digitalWrite(FLASH_GPIO_NUM, LOW);
+    
     
   }
   delay(1);
 
-  String SERVER_PHOTO_PATH = SERVER_PHOTO+ String("/photo") + String(captureCounter) + String(".jpg");
+  String SERVER_PHOTO_PATH = SERVER_PHOTO + String("/photo") + String(captureCounter) + String(".jpg");
   HTTPClient http;
   
   if (Firebase.ready() && !taskCompleted){
@@ -231,7 +223,7 @@ void loop() {
       http.begin(SERVER_NAME);
       http.addHeader("Content-Type", "application/json");
       // JSON data to send with HTTP POST
-      String httpRequestData = "{\"FarmFeildId\":\"" + String(FARM_FEILD_ID) + "\",\"CameraId\":\"" + String(CAMERA_ID) + "\",\"CaptureCount\":\"" + String(captureCounter)+ "\",\"ImageLocation\":\"" + String(SERVER_PHOTO_PATH)+"\"}";           
+      String httpRequestData = "{\"FarmFeildId\":\"" + String(FARM_FEILD_ID) + "\",\"CameraId\":\"" + String(CAMERA_ID) + "\",\"CaptureCount\":\"" + String(captureCounter)+ "\",\"ImageLocation\":\"" + String("/"+SERVER_PHOTO_PATH)+"\"}";           
       Serial.println();
       Serial.print(httpRequestData);
       Serial.println();
@@ -241,21 +233,34 @@ void loop() {
       Serial.println(httpResponseCode);
       if(httpResponseCode>0){
         String response = http.getString();  
-        Serial.println(response);
+        Serial.printf("\n HTTP post response: %s\n",response);
+
+        // assign flash repller count according to animal type
+        if(response == "bird"){
+          responseFlashCounter=1;
+        }else if(response == "elephant"){
+          responseFlashCounter=2;
+        }else if(response == "person"){
+          responseFlashCounter=3;
+        }else if(response == "wild_boar"){
+          responseFlashCounter=4;
+        }else{
+          responseFlashCounter=0;
+        }
+
+        // perform repeated flash repeller
+        for(responseFlashCounter; responseFlashCounter>0; responseFlashCounter--){
+          digitalWrite(FLASH_GPIO_NUM, HIGH);
+          delay(500);
+          digitalWrite(FLASH_GPIO_NUM, LOW);
+          delay(500);
+        }
       }
-       http.end();
-      
+      http.end();
     }
     else{
       Serial.println(fbdo.errorReason());
     }
   }
   delay(10000);
-  if(captureCounter == 5){
-    takeNewPhoto = false;
-    taskCompleted = true;
-    Serial.println("-- process end --"); 
-    captureCounter++;
-  }
-  
 }

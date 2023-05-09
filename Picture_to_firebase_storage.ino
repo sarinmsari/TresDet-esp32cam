@@ -207,7 +207,8 @@ void loop() {
   }
   delay(1);
 
-  String SERVER_PHOTO_PATH = SERVER_PHOTO + String("/photo") + String(captureCounter) + String(".jpg");
+  String API_PHOTO_PATH = SERVER_PHOTO + String("/photo") + String(captureCounter) + String(".jpg");
+  String SERVER_PHOTO_PATH = String("/") + API_PHOTO_PATH;
   HTTPClient http;
   
   if (Firebase.ready() && !taskCompleted){
@@ -223,7 +224,7 @@ void loop() {
       http.begin(SERVER_NAME);
       http.addHeader("Content-Type", "application/json");
       // JSON data to send with HTTP POST
-      String httpRequestData = "{\"FarmFeildId\":\"" + String(FARM_FEILD_ID) + "\",\"CameraId\":\"" + String(CAMERA_ID) + "\",\"CaptureCount\":\"" + String(captureCounter)+ "\",\"ImageLocation\":\"" + String("/"+SERVER_PHOTO_PATH)+"\"}";           
+      String httpRequestData = "{\"FarmFeildId\":\"" + String(FARM_FEILD_ID) + "\",\"CameraId\":\"" + String(CAMERA_ID) + "\",\"CaptureCount\":\"" + String(captureCounter)+ "\",\"ImageLocation\":\"" + String(API_PHOTO_PATH)+"\"}";           
       Serial.println();
       Serial.print(httpRequestData);
       Serial.println();
